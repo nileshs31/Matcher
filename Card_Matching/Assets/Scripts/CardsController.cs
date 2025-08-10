@@ -18,7 +18,7 @@ public class CardsController : MonoBehaviour
     readonly List<Card> _openCards = new List<Card>();                
     readonly Queue<(Card a, Card b)> _compareQueue = new Queue<(Card, Card)>();
     bool _isProcessingQueue;
-
+    int matchedPairs = 0;
     int rows, col; 
     // PlayerPrefs keys
     public const string RowsKey = "Rows";
@@ -139,9 +139,20 @@ public class CardsController : MonoBehaviour
                 a.iconImage.color = tempCol;
                 b.iconImage.color = tempCol;
                 SoundManager.Instance.PlayMatch();
+                ScoreManager.Instance.OnPairMatched();
+
+                matchedPairs++;
+                if (matchedPairs >= (rows * col) / 2)
+                {
+                    ScoreManager.Instance.OnGameWon();
+                    SoundManager.Instance.PlayGameOver();
+                }
+
             }
             else
             {
+                SoundManager.Instance.PlayMismatch();
+                ScoreManager.Instance.OnPairMismatched();
                 StartCoroutine(FlipBackAfterDelay(a, b, 0.35f));
             }
 
@@ -153,7 +164,6 @@ public class CardsController : MonoBehaviour
 
     IEnumerator FlipBackAfterDelay(Card a, Card b, float delay)
     {
-        SoundManager.Instance.PlayMismatch();
         yield return new WaitForSeconds(delay);
 
         if (a != null && a.isSelected) a.Hide();

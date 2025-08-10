@@ -51,6 +51,10 @@ public class Card : MonoBehaviour
 
     public void OnClick()
     {
+        if (ScoreManager.Instance.TimeUp)
+        {
+            return;
+        }
         cardCon.SetSelected(this);
     }
 

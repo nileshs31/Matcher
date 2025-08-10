@@ -71,9 +71,6 @@ public class MainMenuController : MonoBehaviour
     {
         PlayerPrefs.Save();
         Application.Quit();
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#endif
     }
 
     private static int ClampToRange(string s, int min, int max)
