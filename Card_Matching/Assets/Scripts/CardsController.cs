@@ -8,7 +8,7 @@ public class CardsController : MonoBehaviour
 {
 
     [SerializeField] Card cardPrefab;
-    [SerializeField] Transform gridTransform;
+    [SerializeField] GridLayoutGroup grid;
     [SerializeField] Sprite[] sprites;
 
     private List<Sprite> spritePairs;
@@ -18,33 +18,72 @@ public class CardsController : MonoBehaviour
     readonly List<Card> _openCards = new List<Card>();                
     readonly Queue<(Card a, Card b)> _compareQueue = new Queue<(Card, Card)>();
     bool _isProcessingQueue;
+
+    int rows, col; 
+    // PlayerPrefs keys
+    public const string RowsKey = "Rows";
+    public const string ColsKey = "Cols";
+
+    void Awake()
+    {
+        ApplyGridSettings();
+    }
+
+    void ApplyGridSettings()
+    {
+        rows = PlayerPrefs.GetInt(RowsKey);
+        col = PlayerPrefs.GetInt(ColsKey);
+
+        if ((rows * col) % 2 != 0)
+        {
+            // trim one column (keeps UX predictable)
+            col = Mathf.Max(1, col - 1);
+        }
+
+        if (grid == null) return;
+
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = col;
+        if (col > 4)
+            grid.cellSize = new Vector2(150f, 160f);
+        else
+            grid.cellSize = new Vector2(200f, 210f);
+    }
+
     private void Start()
     {
         SetupSprite();
         CreateCards();
     }
 
-    private void SetupSprite()  // no of sprites decided here!
+    private void SetupSprite()  // number of sprites decided here!
     {
-        spritePairs = new List<Sprite>();
-        for(int i = 0; i < sprites.Length; i++)
+        int totalCards = rows * col;
+        int pairsNeeded = totalCards / 2;
+
+        spritePairs = new List<Sprite>(totalCards);
+
+        for (int i = 0; i < pairsNeeded; i++)
         {
-            spritePairs.Add(sprites[i]);
-            spritePairs.Add(sprites[i]);
+            Sprite face = sprites[i % sprites.Length];
+            spritePairs.Add(face);
+            spritePairs.Add(face);
         }
 
         ShuffleSprites(spritePairs);
     }
 
+
     void CreateCards()
     {
         for (int i = 0; i < spritePairs.Count; i++)
         {
-            Card card = Instantiate(cardPrefab, gridTransform);
+            Card card = Instantiate(cardPrefab, grid.transform);
             card.SetIconSprite(spritePairs[i]);
             card.cardCon = this;
         }
     }
+
 
     void ShuffleSprites(List<Sprite> spritesList)
     {
@@ -99,6 +138,7 @@ public class CardsController : MonoBehaviour
                 tempCol.a = 0.65f;
                 a.iconImage.color = tempCol;
                 b.iconImage.color = tempCol;
+                SoundManager.Instance.PlayMatch();
             }
             else
             {
@@ -113,6 +153,7 @@ public class CardsController : MonoBehaviour
 
     IEnumerator FlipBackAfterDelay(Card a, Card b, float delay)
     {
+        SoundManager.Instance.PlayMismatch();
         yield return new WaitForSeconds(delay);
 
         if (a != null && a.isSelected) a.Hide();

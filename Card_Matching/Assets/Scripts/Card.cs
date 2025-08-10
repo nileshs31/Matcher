@@ -22,6 +22,7 @@ public class Card : MonoBehaviour
 
     public void Show()
     {
+        SoundManager.Instance.PlayFlip();
         //iconImage.sprite = null;
         transform.DORotate(new Vector3(0f, 90f, 0f), 0.1f, RotateMode.Fast).OnComplete(() =>
         {
