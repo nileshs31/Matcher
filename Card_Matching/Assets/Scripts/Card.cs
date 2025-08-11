@@ -12,6 +12,8 @@ public class Card : MonoBehaviour
     public Sprite hiddenIconSprite;
     public Sprite iconSprite;
 
+    public int index;
+
     public bool isSelected;
 
     public CardsController cardCon;
