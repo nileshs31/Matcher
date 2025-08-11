@@ -20,7 +20,7 @@ public class ScoreManager : MonoBehaviour
     public const string ColsKey = "Cols";
 
     public int Score { get; private set; }
-    public int Combo { get; private set; } // 0 means no current streak
+    public int Combo { get; private set; } 
     public float TotalTime { get; private set; }
     public float TimeLeft { get; private set; }
     public bool TimeUp { get; private set; }

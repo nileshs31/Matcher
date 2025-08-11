@@ -118,7 +118,7 @@ public class CardsController : MonoBehaviour
                 data.names.Add(spritePairs[i] ? spritePairs[i].name : "");
         }
 
-        // NEW: snapshot HUD
+
         if (ScoreManager.Instance != null)
         {
             data.score = ScoreManager.Instance.Score;
@@ -169,7 +169,6 @@ public class CardsController : MonoBehaviour
             AddIfNew(indexA);
             AddIfNew(indexB);
 
-            // also persist score/time every match
             if (ScoreManager.Instance != null)
             {
                 data.score = ScoreManager.Instance.Score;
@@ -209,11 +208,10 @@ public class CardsController : MonoBehaviour
             PlayerPrefs.SetInt(ColsKey, col);
             PlayerPrefs.Save();
 
-            // Map names -> sprites
             var nameToSprite = new Dictionary<string, Sprite>(sprites.Length);
             foreach (var s in sprites) if (s != null) nameToSprite[s.name] = s;
 
-            // Rebuild spritePairs exactly
+
             spritePairs = new List<Sprite>(data.names.Count);
             foreach (var n in data.names)
             {
@@ -221,7 +219,7 @@ public class CardsController : MonoBehaviour
                 spritePairs.Add(spr);
             }
 
-            // Buffer matched + HUD for after CreateCards()
+
             _matchedFromSave = (data.matchedIndex != null) ? new List<int>(data.matchedIndex) : new List<int>();
             _scoreFromSave = data.score;
             _timeFromSave = data.timeLeft;
@@ -254,7 +252,7 @@ public class CardsController : MonoBehaviour
             matchedPairs /= 2;
         }
 
-        // Restore HUD (score + time)
+
         ScoreManager.Instance?.LoadFromSave(_scoreFromSave, _timeFromSave);
     }
 
