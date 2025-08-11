@@ -145,7 +145,6 @@ public class CardsController : MonoBehaviour
                 if (matchedPairs >= (rows * col) / 2)
                 {
                     ScoreManager.Instance.OnGameWon();
-                    SoundManager.Instance.PlayGameOver();
                 }
 
             }
