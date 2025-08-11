@@ -30,6 +30,7 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private TMP_Text toastText;      
     [SerializeField] private float toastShowY = -50f; 
     [SerializeField] private float toastHideY = 150f;
+    [SerializeField] CardsController cardsController;
 
     private Tween toastTween;
 
@@ -77,6 +78,7 @@ public class ScoreManager : MonoBehaviour
             TimeUp = true;
             SoundManager.Instance.PlayGameOver();
             gameoverScreen.SetActive(true);
+            cardsController.DeleteSaveFile();
         }
     }
     public void OnPairMatched()
@@ -94,7 +96,6 @@ public class ScoreManager : MonoBehaviour
     public void OnPairMismatched()
     {
         Combo = 0;
-        UpdateScoreUI();
     }
 
     public void OnGameWon()
@@ -104,6 +105,7 @@ public class ScoreManager : MonoBehaviour
             TimeUp = true;
             SoundManager.Instance.PlayGameOver();
             gameoverScreen.SetActive(true);
+            FindObjectOfType<CardsController>()?.DeleteSaveFile();
         }
     }
 
@@ -139,4 +141,20 @@ public class ScoreManager : MonoBehaviour
                 });
             });
     }
+
+    public void LoadFromSave(int score, float timeLeft)
+    {
+        Score = Mathf.Max(0, score);
+        TimeLeft = Mathf.Clamp(timeLeft, 0f, TotalTime);
+
+        if (timeSlider != null)
+        {
+            timeSlider.minValue = 0f;
+            timeSlider.maxValue = TotalTime;
+            timeSlider.value = TimeLeft;
+        }
+        if (scoreText != null)
+            scoreText.text = $"Score: {Score}";
+    }
+
 }

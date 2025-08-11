@@ -13,6 +13,9 @@ class OrderData
     public int cols;
     public List<string> names = new List<string>();
     public List<int> matchedIndex = new List<int>();
+
+    public int score;
+    public float timeLeft;
 }
 
 
@@ -37,7 +40,9 @@ public class CardsController : MonoBehaviour
     // PlayerPrefs keys
     public const string RowsKey = "Rows";
     public const string ColsKey = "Cols";
-
+    private List<int> _matchedFromSave = new List<int>();
+    private int _scoreFromSave = 0;
+    private float _timeFromSave = 0f;
     void Awake()
     {
         ApplyGridSettings();
@@ -71,6 +76,7 @@ public class CardsController : MonoBehaviour
         {
             ApplyGridSettings();
             CreateCards();
+            TurnOnMatchedCardsAndRestoreHUD();
             return;
         }
 
@@ -112,17 +118,78 @@ public class CardsController : MonoBehaviour
                 data.names.Add(spritePairs[i] ? spritePairs[i].name : "");
         }
 
+        // NEW: snapshot HUD
+        if (ScoreManager.Instance != null)
+        {
+            data.score = ScoreManager.Instance.Score;
+            data.timeLeft = ScoreManager.Instance.TimeLeft;
+        }
+
         try
         {
             var json = JsonUtility.ToJson(data, true);
             File.WriteAllText(OrderFilePath, json);
-            Debug.Log($"[CardsController] Order saved: {OrderFilePath}");
+
+            PlayerPrefs.SetInt(MainMenuController.SaveExistsKey, 1);
+            PlayerPrefs.Save();
+
         }
         catch (Exception e)
         {
             Debug.LogError($"[CardsController] Save order failed: {e}");
         }
     }
+
+
+    void SaveProgressAfterMatch(int indexA, int indexB)
+    {
+        try
+        {
+            OrderData data;
+
+            if (File.Exists(OrderFilePath))
+            {
+                var json = File.ReadAllText(OrderFilePath);
+                data = JsonUtility.FromJson<OrderData>(json) ?? new OrderData();
+            }
+            else
+            {
+                data = new OrderData();
+            }
+
+            data.rows = rows;
+            data.cols = col;
+
+            if (data.matchedIndex == null) data.matchedIndex = new List<int>();
+            void AddIfNew(int idx)
+            {
+                if (idx < 0 || idx >= spritePairs.Count) return;
+                if (!data.matchedIndex.Contains(idx)) data.matchedIndex.Add(idx);
+            }
+            AddIfNew(indexA);
+            AddIfNew(indexB);
+
+            // also persist score/time every match
+            if (ScoreManager.Instance != null)
+            {
+                data.score = ScoreManager.Instance.Score;
+                data.timeLeft = ScoreManager.Instance.TimeLeft;
+            }
+
+            File.WriteAllText(OrderFilePath, JsonUtility.ToJson(data, true));
+
+            PlayerPrefs.SetInt(MainMenuController.SaveExistsKey, 1);
+            PlayerPrefs.Save();
+
+            // Debug.Log($"[CardsController] Progress saved with matched: {indexA},{indexB}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[CardsController] SaveProgressAfterMatch error: {e}");
+        }
+    }
+
+
 
     bool TryLoadOrderFromFile()
     {
@@ -137,16 +204,27 @@ public class CardsController : MonoBehaviour
             rows = data.rows;
             col = data.cols;
 
+            // keep PlayerPrefs in sync because ApplyGridSettings() reads them
+            PlayerPrefs.SetInt(RowsKey, rows);
+            PlayerPrefs.SetInt(ColsKey, col);
+            PlayerPrefs.Save();
+
+            // Map names -> sprites
             var nameToSprite = new Dictionary<string, Sprite>(sprites.Length);
             foreach (var s in sprites) if (s != null) nameToSprite[s.name] = s;
 
-
+            // Rebuild spritePairs exactly
             spritePairs = new List<Sprite>(data.names.Count);
             foreach (var n in data.names)
             {
                 if (!nameToSprite.TryGetValue(n, out var spr)) spr = sprites.Length > 0 ? sprites[0] : null;
                 spritePairs.Add(spr);
             }
+
+            // Buffer matched + HUD for after CreateCards()
+            _matchedFromSave = (data.matchedIndex != null) ? new List<int>(data.matchedIndex) : new List<int>();
+            _scoreFromSave = data.score;
+            _timeFromSave = data.timeLeft;
 
             Debug.Log($"[CardsController] Order loaded: {OrderFilePath}");
             return true;
@@ -158,6 +236,41 @@ public class CardsController : MonoBehaviour
         }
     }
 
+
+    void TurnOnMatchedCardsAndRestoreHUD()
+    {
+        if (_matchedFromSave != null && _matchedFromSave.Count > 0)
+        {
+            matchedPairs = 0;
+            foreach (int idx in _matchedFromSave)
+            {
+                var card = grid.transform.GetChild(idx+1).GetComponent<Card>();
+                card.iconImage.sprite = card.iconSprite;
+                card.isSelected = true;                   
+                var c = Color.white; c.a = 0.65f;         
+                card.iconImage.color = c;
+                matchedPairs++;
+            }
+            matchedPairs /= 2;
+        }
+
+        // Restore HUD (score + time)
+        ScoreManager.Instance?.LoadFromSave(_scoreFromSave, _timeFromSave);
+    }
+
+
+    public void DeleteSaveFile()
+    {
+        if (File.Exists(OrderFilePath))
+        {
+            File.Delete(OrderFilePath);
+            Debug.Log("[CardsController] Save file deleted.");
+        }
+
+        PlayerPrefs.SetInt("SaveExists", 0);
+        PlayerPrefs.SetInt("ContinueGame", 0);
+        PlayerPrefs.Save();
+    }
     void CreateCards()
     {
         for (int i = 0; i < spritePairs.Count; i++)
@@ -229,6 +342,7 @@ public class CardsController : MonoBehaviour
                 ScoreManager.Instance.OnPairMatched();
 
                 matchedPairs++;
+                SaveProgressAfterMatch(a.index, b.index);
                 if (matchedPairs >= (rows * col) / 2)
                 {
                     ScoreManager.Instance.OnGameWon();

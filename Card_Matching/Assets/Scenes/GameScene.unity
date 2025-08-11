@@ -1393,6 +1393,7 @@ MonoBehaviour:
   toastText: {fileID: 526831473}
   toastShowY: -207
   toastHideY: 65
+  cardsController: {fileID: 2094790635}
 --- !u!1 &1059141965
 GameObject:
   m_ObjectHideFlags: 0
