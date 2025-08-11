@@ -10,7 +10,7 @@ A simple yet fully functional **Matcher Game** built in Unity, featuring **persi
 - [Gameplay Flow](#gameplay-flow)
 - [Scripts Overview](#scripts-overview)
 - [How to Run](#how-to-run)
-- [Build and Working Video](#build)
+- [Build and Working Video](#build-and-working-video)
 
 ---
 
@@ -78,9 +78,13 @@ The project includes a **persistent save system** using JSON files in `Applicati
 ---
 
 ## Build and Working Video 
+
 Android Build - https://drive.google.com/file/d/1tqSsRP1KMWgT1Me3ChWYsqsqLexWSKYH/view?usp=drive_link
+
 Windows Build - https://drive.google.com/file/d/1d7FknJ59sAkXBGBMGdlPlYMw02oTGnlE/view?usp=drive_link
+
 Gameplay Video (With all the requested Features) - https://drive.google.com/file/d/1YtzYETFf1mwjA8OmCkM7jke8tDXXrwnN/view?usp=drive_link
+
 
 ---
 
