@@ -1,4 +1,4 @@
-# Matcher(Confidential)
+# Matcher
 A simple yet fully functional **Matcher Game** built in Unity, featuring **persistent save/load**, **score tracking**, and **customizable grid sizes**.
 
 ---
