@@ -1,7 +1,5 @@
-# Memory Match Game – Unity
-
-![Unity](https://img.shields.io/badge/Engine-Unity-blue.svg)  
-A simple yet fully functional **memory card matching game** built in Unity, featuring **persistent save/load**, **score tracking**, and **customizable grid sizes**.
+# Matcher(Confidential)
+A simple yet fully functional **Matcher Game** built in Unity, featuring **persistent save/load**, **score tracking**, and **customizable grid sizes**.
 
 ---
 
